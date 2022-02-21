@@ -1,0 +1,21 @@
+@import "./reset.scss";
+
+:root {
+  --primary-blue: #3f51fb;
+  --light-blue: #eceeff;
+  --darken-blue: #2538e0;
+
+  --mobile-size: 767px;
+  --desktop: 1024px;
+}
+
+body,
+html {
+  height: 100%;
+  width: 100%;
+}
+
+canvas {
+  display: block;
+  image-rendering: pixelated;
+}
