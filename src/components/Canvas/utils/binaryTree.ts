@@ -1,18 +1,36 @@
 type Key = string | number | null;
 
+type Value = {
+  x: number;
+  y: number;
+  name: string;
+};
+
+type CardSize = {
+  width: number;
+  height: number;
+};
+
+const CARD_SIZES = {
+  width: 276,
+  height: 100,
+};
+
 class BinaryTreeNode {
   left: boolean | null;
   right: boolean | null;
   key: Key;
-  value: Key;
+  value: Value;
   parent: Key;
+  cardSize: CardSize;
 
-  constructor(key: Key, value = key, parent = null) {
+  constructor(key: Key, value: Value, parent = null, cardSize: CardSize) {
     this.key = key;
     this.value = value;
     this.parent = parent;
     this.left = null;
     this.right = null;
+    this.cardSize = cardSize;
   }
 
   get isLeaf() {
@@ -26,10 +44,11 @@ class BinaryTreeNode {
 
 class BinaryTree {
   root: BinaryTreeNode;
-  key: any;
+  cardSize: CardSize;
 
-  constructor(key: any, value = key) {
-    this.root = new BinaryTreeNode(key, value);
+  constructor(key: number, value: Value, cardSize: CardSize) {
+    this.root = new BinaryTreeNode(key, value, null, cardSize);
+    this.cardSize = cardSize;
   }
 
   // @ts-ignore
@@ -62,10 +81,11 @@ class BinaryTree {
   insert(
     parentNodeKey: number,
     key: string | number,
-    value = key,
+    name: string,
     { left, right } = { left: true, right: true }
   ) {
     for (let node of this.preOrderTraversal()) {
+      // console.log("===node", node);
       if (node.key === parentNodeKey) {
         const canInsertLeft = left && node.left === null;
         const canInsertRight = right && node.right === null;
@@ -73,11 +93,31 @@ class BinaryTree {
         if (!canInsertLeft && !canInsertRight) return false;
 
         if (canInsertLeft) {
-          node.left = new BinaryTreeNode(key, value, node);
+          // console.log("====§§", node.value.x - (this.cardSize.width + 100));
+          node.left = new BinaryTreeNode(
+            key,
+            {
+              name,
+              x: node.value.x - (this.cardSize.width + 100),
+              y: node.value.y - 140,
+            },
+            node,
+            this.cardSize
+          );
           return true;
         }
+
         if (canInsertRight) {
-          node.right = new BinaryTreeNode(key, value, node);
+          node.right = new BinaryTreeNode(
+            key,
+            {
+              name,
+              x: node.value.x - (this.cardSize.width + 100),
+              y: node.value.y + 140,
+            },
+            node,
+            this.cardSize
+          );
           return true;
         }
       }
@@ -108,17 +148,60 @@ class BinaryTree {
   }
 }
 
-export const tree = new BinaryTree(1, "GRAND_FINAL");
+// const matches = {
+//   ["ID_1"]: {
+//     node_id: "ID_1",
+//     node_group_id: 23,
+//     name: "FINAL",
+//     team_1_wins: null,
+//     team_2_wins: null,
+//   },
+// };
+
+// "571": {
+//   node_id: 571,
+//   node_group_id: 23, // айди группы, чтоб можно было все привязать, думаю использовать какую-то карту для отображения и туда сувать айди
+//   winning_node_id: 574,
+//   losing_node_id: 583,
+//   actual_time: 1634108400,
+//   scheduled_time: 1634108400, // дата начала турика
+//   node_type: 2,
+//   has_started: false,
+//   is_completed: false,
+//   team_1_wins: 2, // две победы
+//   team_2_wins: 1, // одна
+//   matches: [{
+//     match_id: "6234234234",
+//     winning_team_id: 15,
+//   }, {
+//     match_id: "6234234234",
+//     winning_team_id: 15,
+//   }, {
+//     match_id: "6234234234",
+//     winning_team_id: 15,
+//   }],
+// }
+export const tree = new BinaryTree(
+  1,
+  {
+    name: "GRAND_FINAL",
+    x: window.innerWidth - (120 + CARD_SIZES.width),
+    y: window.innerHeight / 2,
+  },
+  CARD_SIZES
+);
 
 // @ts-ignore
-tree.insert(1, 2, "FINAL", { left: true });
+tree.insert(1, 11, "FINAL", { left: true });
 // @ts-ignore
-tree.insert(1, 3, "FINAL", { right: true });
+tree.insert(1, 12, "FINAL", { right: true });
 
-tree.insert(2, 4, "SEMI_FINAL");
-tree.insert(2, 5, "SEMI_FINAL");
+tree.insert(11, 111, "SEMI_FINAL");
+tree.insert(11, 112, "SEMI_FINAL");
+tree.insert(12, 121, "SEMI_FINAL");
+tree.insert(12, 122, "SEMI_FINAL");
 
-tree.insert(4, 6, "QUATER_FINAL");
-tree.insert(4, 7, "QUATER_FINAL");
-tree.insert(5, 8, "QUATER_FINAL");
-tree.insert(5, 9, "QUATER_FINAL");
+// tree.insert(111, 1111, "QUATER_FINAL");
+// tree.insert(111, 1111, "QUATER_FINAL");
+// tree.insert(111, 1112, "QUATER_FINAL");
+// tree.insert(111, 1112, "QUATER_FINAL");

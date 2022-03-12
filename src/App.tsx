@@ -4,10 +4,9 @@ import Canvas from "./components/Canvas";
 function App() {
   return (
     <div className="App">
-      <Canvas
-        width={window.innerWidth * devicePixelRatio}
-        height={window.innerHeight * devicePixelRatio}
-      />
+      <div style={{ marginLeft: 40 }}>
+        <Canvas canvasWidth={1400} canvasHeight={600} />
+      </div>
     </div>
   );
 }
