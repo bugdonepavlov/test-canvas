@@ -51,18 +51,18 @@ export const roundedRect: FCArgs<
 };
 
 export const makeCard: FCArgs<
-  [CanvasRenderingContext2D, number, number, number, number, number]
-> = (ctx, x, y, width, height, radius) => {
+  [CanvasRenderingContext2D, number, number, number, number, number, any]
+> = (ctx, x, y, width, height, radius, node) => {
   roundedRect(ctx, x, y, width, height, radius);
 
   ctx.beginPath();
-  ctx.arc(x, y, 14, 0, 2 * Math.PI);
+  // ctx.arc(x, y, 14, 0, 2 * Math.PI);
   ctx.fillStyle = "#c4c4c4";
-  ctx.fill();
+  // ctx.fill();
 
   ctx.font = "16px Fira Sans Condensed";
-  ctx.fillText("Super Team", x, y);
-  ctx.fillText("0", x, y);
+  ctx.fillText(`key: ${node.key}; y: ${node.positions.y}`, x + 10, y + 40);
+  // ctx.fillText("0", x, y);
   ctx.fillStyle = "#fff";
   ctx.closePath();
 };

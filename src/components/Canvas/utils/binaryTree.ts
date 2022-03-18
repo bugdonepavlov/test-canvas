@@ -1,123 +1,174 @@
-type Key = string | number | null;
-
-type Value = {
-  x: number;
-  y: number;
-  name: string;
+const CARD_SIZES = {
+  width: 276,
+  height: 80,
+  offset: {
+    x: 40,
+    y: 40,
+  },
 };
 
-type CardSize = {
+type Size = {
   width: number;
   height: number;
 };
 
-const CARD_SIZES = {
-  width: 276,
-  height: 100,
+type Offset = {
+  x: number;
+  y: number;
 };
 
-class BinaryTreeNode {
-  left: boolean | null;
-  right: boolean | null;
-  key: Key;
-  value: Value;
-  parent: Key;
-  cardSize: CardSize;
+interface IPropsTree {
+  key?: number;
+  name?: string;
+  size: Size;
+  offset: Offset;
+  maxCardInColumn?: number;
+}
 
-  constructor(key: Key, value: Value, parent = null, cardSize: CardSize) {
+interface INodeTree extends IPropsTree {
+  parent?: any;
+  left: BinaryTreeNode | null;
+  right: BinaryTreeNode | null;
+  positions: {
+    x: number;
+    y: number;
+  };
+}
+
+class BinaryTreeNode {
+  left: INodeTree["left"];
+  right: INodeTree["right"];
+  name: INodeTree["name"];
+  key: INodeTree["key"];
+  positions: INodeTree["positions"];
+  parent: BinaryTreeNode;
+
+  constructor({
+    key,
+    name,
+    parent = null,
+    positions,
+  }: Omit<
+    INodeTree,
+    "left" | "right" | "maxCardInColumn" | "size" | "offset"
+  >) {
     this.key = key;
-    this.value = value;
+    this.name = name;
     this.parent = parent;
     this.left = null;
     this.right = null;
-    this.cardSize = cardSize;
+    this.positions = positions;
   }
 
-  get isLeaf() {
+  get isLeaf(): boolean {
     return this.left === null && this.right === null;
   }
 
-  get hasChildren() {
+  get hasChildren(): boolean {
     return !this.isLeaf;
   }
 }
 
 class BinaryTree {
   root: BinaryTreeNode;
-  cardSize: CardSize;
+  maxCardInColumn: number;
+  maxHeightColumnWithCard: number = 0;
+  size: Size = {
+    width: 0,
+    height: 0,
+  };
+  offset: Offset = {
+    x: 0,
+    y: 0,
+  };
 
-  constructor(key: number, value: Value, cardSize: CardSize) {
-    this.root = new BinaryTreeNode(key, value, null, cardSize);
-    this.cardSize = cardSize;
+  constructor({
+    key = 1,
+    name = "GRAND_FINAL",
+    size,
+    offset,
+    maxCardInColumn = 4,
+  }: IPropsTree) {
+    // TODO generate dynamic max cards in column
+    this.maxCardInColumn = maxCardInColumn;
+    this.maxHeightColumnWithCard =
+      this.maxCardInColumn * size.height + this.maxCardInColumn * offset.y;
+    this.size = size;
+    this.offset = offset;
+
+    this.root = new BinaryTreeNode({
+      key,
+      name,
+      positions: {
+        x: window.innerWidth - (this.offset.x + this.size.width),
+        y: this.maxHeightColumnWithCard / 2,
+      },
+    });
   }
 
-  // @ts-ignore
-  *inOrderTraversal(node = this.root) {
-    // @ts-ignore
+  getParentCount(node: BinaryTreeNode, count = 0): number {
+    if (!node.parent) return count;
+
+    return this.getParentCount(node.parent, count + 1);
+  }
+
+  *inOrderTraversal(node = this.root): Generator<BinaryTreeNode> {
     if (node.left) yield* this.inOrderTraversal(node.left);
     yield node;
-    // @ts-ignore
     if (node.right) yield* this.inOrderTraversal(node.right);
   }
 
-  // @ts-ignore
-  *postOrderTraversal(node = this.root) {
-    // @ts-ignore
+  *postOrderTraversal(node = this.root): Generator<BinaryTreeNode> {
     if (node.left) yield* this.postOrderTraversal(node.left);
-    // @ts-ignore
     if (node.right) yield* this.postOrderTraversal(node.right);
     yield node;
   }
 
-  // @ts-ignore
-  *preOrderTraversal(node = this.root) {
+  *preOrderTraversal(node = this.root): Generator<BinaryTreeNode> {
     yield node;
-    // @ts-ignore
     if (node.left) yield* this.preOrderTraversal(node.left);
-    // @ts-ignore
     if (node.right) yield* this.preOrderTraversal(node.right);
   }
 
   insert(
     parentNodeKey: number,
-    key: string | number,
+    key: number,
     name: string,
     { left, right } = { left: true, right: true }
   ) {
     for (let node of this.preOrderTraversal()) {
-      // console.log("===node", node);
       if (node.key === parentNodeKey) {
+        const offsetHeight =
+          this.maxHeightColumnWithCard /
+          Math.pow(2, this.getParentCount(node) + 2);
         const canInsertLeft = left && node.left === null;
         const canInsertRight = right && node.right === null;
 
         if (!canInsertLeft && !canInsertRight) return false;
 
         if (canInsertLeft) {
-          // console.log("====§§", node.value.x - (this.cardSize.width + 100));
-          node.left = new BinaryTreeNode(
+          node.left = new BinaryTreeNode({
             key,
-            {
-              name,
-              x: node.value.x - (this.cardSize.width + 100),
-              y: node.value.y - 140,
+            name,
+            positions: {
+              x: node.positions.x - (this.offset.x + this.size.width),
+              y: node.positions.y - offsetHeight,
             },
-            node,
-            this.cardSize
-          );
+            parent: node,
+          });
           return true;
         }
 
         if (canInsertRight) {
-          node.right = new BinaryTreeNode(
+          node.right = new BinaryTreeNode({
             key,
-            {
-              name,
-              x: node.value.x - (this.cardSize.width + 100),
-              y: node.value.y + 140,
+            name,
+            positions: {
+              x: node.positions.x - (this.offset.x + this.size.width),
+              y: node.positions.y + offsetHeight,
             },
-            node,
-            this.cardSize
-          );
+            parent: node,
+          });
           return true;
         }
       }
@@ -128,10 +179,12 @@ class BinaryTree {
 
   remove(key: number) {
     for (let node of this.preOrderTraversal()) {
+      // @ts-ignore
       if (node.left.key === key) {
         node.left = null;
         return true;
       }
+      // @ts-ignore
       if (node.right.key === key) {
         node.right = null;
         return true;
@@ -148,48 +201,13 @@ class BinaryTree {
   }
 }
 
-// const matches = {
-//   ["ID_1"]: {
-//     node_id: "ID_1",
-//     node_group_id: 23,
-//     name: "FINAL",
-//     team_1_wins: null,
-//     team_2_wins: null,
-//   },
-// };
-
-// "571": {
-//   node_id: 571,
-//   node_group_id: 23, // айди группы, чтоб можно было все привязать, думаю использовать какую-то карту для отображения и туда сувать айди
-//   winning_node_id: 574,
-//   losing_node_id: 583,
-//   actual_time: 1634108400,
-//   scheduled_time: 1634108400, // дата начала турика
-//   node_type: 2,
-//   has_started: false,
-//   is_completed: false,
-//   team_1_wins: 2, // две победы
-//   team_2_wins: 1, // одна
-//   matches: [{
-//     match_id: "6234234234",
-//     winning_team_id: 15,
-//   }, {
-//     match_id: "6234234234",
-//     winning_team_id: 15,
-//   }, {
-//     match_id: "6234234234",
-//     winning_team_id: 15,
-//   }],
-// }
-export const tree = new BinaryTree(
-  1,
-  {
-    name: "GRAND_FINAL",
-    x: window.innerWidth - (120 + CARD_SIZES.width),
-    y: window.innerHeight / 2,
+export const tree = new BinaryTree({
+  size: {
+    width: CARD_SIZES.width,
+    height: CARD_SIZES.height,
   },
-  CARD_SIZES
-);
+  offset: { ...CARD_SIZES.offset },
+});
 
 // @ts-ignore
 tree.insert(1, 11, "FINAL", { left: true });
@@ -202,6 +220,6 @@ tree.insert(12, 121, "SEMI_FINAL");
 tree.insert(12, 122, "SEMI_FINAL");
 
 // tree.insert(111, 1111, "QUATER_FINAL");
-// tree.insert(111, 1111, "QUATER_FINAL");
 // tree.insert(111, 1112, "QUATER_FINAL");
-// tree.insert(111, 1112, "QUATER_FINAL");
+// tree.insert(112, 1113, "QUATER_FINAL");
+// tree.insert(112, 1114, "QUATER_FINAL");

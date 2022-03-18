@@ -8,6 +8,7 @@ import {
 import * as React from "react";
 import { tree } from "./utils/binaryTree";
 import { makeCard } from "./utils";
+import styles from "./styles.module.scss";
 
 type CanvasProps = {
   canvasWidth: number;
@@ -145,24 +146,16 @@ export default function Canvas(props: CanvasProps) {
       context.fillStyle = "#000a14";
 
       context.fillRect(0, 0, context.canvas.width, context.canvas.height);
-      // context.fillRect(
-      //   props.canvasWidth / 2 - squareSize / 2,
-      //   props.canvasHeight / 2 - squareSize / 2,
-      //   squareSize,
-      //   squareSize
-      // );
-      // context.arc(viewportTopLeft.x, viewportTopLeft.y, 5, 0, 2 * Math.PI);
-      // context.fillStyle = "red";
-      // context.fill();
 
       for (let node of tree.preOrderTraversal()) {
         makeCard(
           context,
-          node.value.x,
-          node.value.y,
-          node.cardSize.width,
-          node.cardSize.height,
-          4
+          node.positions.x,
+          node.positions.y,
+          tree.size.width,
+          tree.size.height,
+          4,
+          node
         );
       }
     }
@@ -240,11 +233,14 @@ export default function Canvas(props: CanvasProps) {
   }, [context, mousePos.x, mousePos.y, viewportTopLeft, scale]);
 
   return (
-    <div>
-      <button onClick={() => context && reset(context)}>Reset</button>
-      <pre>scale: {scale}</pre>
-      <pre>offset: {JSON.stringify(offset)}</pre>
-      <pre>viewportTopLeft: {JSON.stringify(viewportTopLeft)}</pre>
+    <div className={styles.container}>
+      <div className={styles.topBar}>
+        <button onClick={() => context && reset(context)}>Reset</button>
+        <pre>scale: {scale}</pre>
+        <pre>offset: {JSON.stringify(offset)}</pre>
+        <pre>viewportTopLeft: {JSON.stringify(viewportTopLeft)}</pre>
+      </div>
+
       <canvas
         onMouseDown={startPan}
         ref={canvasRef}
@@ -254,6 +250,7 @@ export default function Canvas(props: CanvasProps) {
           border: "2px solid #000",
           width: `${props.canvasWidth}px`,
           height: `${props.canvasHeight}px`,
+          backgroundColor: "#000a14",
         }}
       ></canvas>
     </div>
