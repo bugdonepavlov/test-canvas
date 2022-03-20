@@ -55,6 +55,40 @@ export const makeCard: FCArgs<
 > = (ctx, x, y, width, height, radius, node) => {
   roundedRect(ctx, x, y, width, height, radius);
 
+  if (!node.parent) {
+    ctx.beginPath();
+    ctx.moveTo(x, y + height / 2);
+    ctx.lineTo(x - 20, y + height / 2);
+    ctx.strokeStyle = "#c4c4c4";
+    ctx.stroke();
+  }
+
+  if (node.left) {
+    ctx.beginPath();
+    ctx.moveTo(x, y + height / 2);
+    ctx.lineTo(x - 20, y + height / 2);
+    ctx.lineTo(
+      node.left.positions.x + width + 20,
+      node.left.positions.y + height / 2
+    );
+    ctx.lineTo(node.left.positions.x, node.left.positions.y + height / 2);
+    ctx.strokeStyle = "#c4c4c4";
+    ctx.stroke();
+  }
+
+  if (node.right) {
+    ctx.beginPath();
+    ctx.moveTo(x, y + height / 2);
+    ctx.lineTo(x - 20, y + height / 2);
+    ctx.lineTo(
+      node.right.positions.x + width + 20,
+      node.right.positions.y + height / 2
+    );
+    ctx.lineTo(node.right.positions.x, node.right.positions.y + height / 2);
+    ctx.strokeStyle = "#c4c4c4";
+    ctx.stroke();
+  }
+
   ctx.beginPath();
   // ctx.arc(x, y, 14, 0, 2 * Math.PI);
   ctx.fillStyle = "#c4c4c4";

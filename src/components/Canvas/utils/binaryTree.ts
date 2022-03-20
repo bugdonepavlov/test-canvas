@@ -3,7 +3,7 @@ const CARD_SIZES = {
   height: 80,
   offset: {
     x: 40,
-    y: 40,
+    y: 60,
   },
 };
 
@@ -87,7 +87,7 @@ class BinaryTree {
     name = "GRAND_FINAL",
     size,
     offset,
-    maxCardInColumn = 4,
+    maxCardInColumn = 8,
   }: IPropsTree) {
     // TODO generate dynamic max cards in column
     this.maxCardInColumn = maxCardInColumn;
@@ -219,7 +219,7 @@ tree.insert(11, 112, "SEMI_FINAL");
 tree.insert(12, 121, "SEMI_FINAL");
 tree.insert(12, 122, "SEMI_FINAL");
 
-// tree.insert(111, 1111, "QUATER_FINAL");
-// tree.insert(111, 1112, "QUATER_FINAL");
-// tree.insert(112, 1113, "QUATER_FINAL");
-// tree.insert(112, 1114, "QUATER_FINAL");
+tree.insert(111, 1111, "QUATER_FINAL");
+tree.insert(111, 1112, "QUATER_FINAL");
+tree.insert(112, 1113, "QUATER_FINAL");
+tree.insert(112, 1114, "QUATER_FINAL");
