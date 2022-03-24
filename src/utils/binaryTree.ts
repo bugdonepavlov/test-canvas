@@ -35,7 +35,7 @@ interface INodeTree extends IPropsTree {
   };
 }
 
-class BinaryTreeNode {
+export class BinaryTreeNode {
   left: INodeTree["left"];
   right: INodeTree["right"];
   name: INodeTree["name"];
@@ -219,7 +219,7 @@ tree.insert(11, 112, "SEMI_FINAL");
 tree.insert(12, 121, "SEMI_FINAL");
 tree.insert(12, 122, "SEMI_FINAL");
 
-tree.insert(111, 1111, "QUATER_FINAL");
-tree.insert(111, 1112, "QUATER_FINAL");
-tree.insert(112, 1113, "QUATER_FINAL");
-tree.insert(112, 1114, "QUATER_FINAL");
+tree.insert(121, 1111, "QUATER_FINAL");
+tree.insert(121, 1112, "QUATER_FINAL");
+tree.insert(122, 1113, "QUATER_FINAL");
+tree.insert(122, 1114, "QUATER_FINAL");

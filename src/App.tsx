@@ -1,15 +1,12 @@
 import React from "react";
-import Canvas from "./components/Canvas";
+import Bracket from "./views/Bracket";
 
-function App() {
+const App = () => {
   return (
     <div className="App">
-      <Canvas
-        canvasWidth={window.innerWidth}
-        canvasHeight={window.innerHeight}
-      />
+      <Bracket />
     </div>
   );
-}
+};
 
 export default App;

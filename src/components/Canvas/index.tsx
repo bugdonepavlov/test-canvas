@@ -6,7 +6,7 @@ import {
   useState,
 } from "react";
 import * as React from "react";
-import { tree } from "./utils/binaryTree";
+import { tree } from "utils/binaryTree";
 import { makeCard } from "./utils";
 import styles from "./styles.module.scss";
 
