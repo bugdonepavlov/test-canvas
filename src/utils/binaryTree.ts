@@ -1,9 +1,9 @@
 const CARD_SIZES = {
   width: 276,
-  height: 80,
+  height: 80 * 2,
   offset: {
-    x: 40,
-    y: 60,
+    x: 80,
+    y: 20 * 2,
   },
 };
 

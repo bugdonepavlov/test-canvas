@@ -5,10 +5,13 @@ import { useWindowSize } from "../hooks/useWindowSize";
 import { tree } from "utils/binaryTree";
 import Card from "../components/Card";
 
+const resolution = Math.min(window.devicePixelRatio, 2);
+
 const stageOptions = {
-  antialias: true,
+  antialias: resolution <= 1,
   autoDensity: true,
   backgroundColor: 0x000a14,
+  resolution: resolution,
 };
 
 const Bracket = () => {
@@ -23,9 +26,11 @@ const Bracket = () => {
       options={stageOptions}
     >
       <Viewport ref={viewportRef} {...{ width, height }}>
-        {[...tree.preOrderTraversal()].map(({ positions, key }) => (
-          <Card {...positions} {...size} key={key} />
-        ))}
+        {[...tree.preOrderTraversal()].map((node) => {
+          const { positions, key } = node;
+
+          return <Card {...positions} {...size} key={key} node={node} />;
+        })}
       </Viewport>
     </Stage>
   );
