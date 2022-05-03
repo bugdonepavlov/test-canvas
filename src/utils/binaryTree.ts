@@ -1,63 +1,32 @@
-const CARD_SIZES = {
-  width: 276,
-  height: 80 * 2,
-  offset: {
-    x: 80,
-    y: 20 * 2,
-  },
-};
-
-type Size = {
-  width: number;
-  height: number;
-};
-
-type Offset = {
-  x: number;
-  y: number;
-};
-
-interface IPropsTree {
-  key?: number;
-  name?: string;
-  size: Size;
-  offset: Offset;
-  maxCardInColumn?: number;
+export enum TypeCard {
+  DUAL = "DUAL",
+  SINGLE = "SINGLE",
+  EMPTY = "EMPTY",
 }
 
-interface INodeTree extends IPropsTree {
-  parent?: any;
-  left: BinaryTreeNode | null;
-  right: BinaryTreeNode | null;
-  positions: {
-    x: number;
-    y: number;
-  };
+interface ValueNode {
+  name: string;
+  type?: TypeCard;
+  positions?: [number | null, number | null];
 }
 
 export class BinaryTreeNode {
-  left: INodeTree["left"];
-  right: INodeTree["right"];
-  name: INodeTree["name"];
-  key: INodeTree["key"];
-  positions: INodeTree["positions"];
-  parent: BinaryTreeNode;
+  key: number;
+  parent: any;
+  left: BinaryTreeNode | null;
+  right: BinaryTreeNode | null;
+  value: ValueNode;
 
-  constructor({
-    key,
-    name,
-    parent = null,
-    positions,
-  }: Omit<
-    INodeTree,
-    "left" | "right" | "maxCardInColumn" | "size" | "offset"
-  >) {
+  constructor(key: number, parent: any, value: Omit<ValueNode, "positions">) {
     this.key = key;
-    this.name = name;
     this.parent = parent;
     this.left = null;
     this.right = null;
-    this.positions = positions;
+    this.value = { ...value, positions: [null, null] };
+  }
+
+  setPositions(x: number, y: number) {
+    this.value = { ...this.value, positions: [x, y] };
   }
 
   get isLeaf(): boolean {
@@ -71,46 +40,55 @@ export class BinaryTreeNode {
 
 class BinaryTree {
   root: BinaryTreeNode;
-  maxCardInColumn: number;
-  maxHeightColumnWithCard: number = 0;
-  size: Size = {
-    width: 0,
-    height: 0,
-  };
-  offset: Offset = {
-    x: 0,
-    y: 0,
-  };
 
-  constructor({
-    key = 1,
-    name = "GRAND_FINAL",
-    size,
-    offset,
-    maxCardInColumn = 8,
-  }: IPropsTree) {
-    // TODO generate dynamic max cards in column
-    this.maxCardInColumn = maxCardInColumn;
-    this.maxHeightColumnWithCard =
-      this.maxCardInColumn * size.height + this.maxCardInColumn * offset.y;
-    this.size = size;
-    this.offset = offset;
-
-    this.root = new BinaryTreeNode({
-      key,
+  constructor(key = 1, name = "GRAND_FINAL") {
+    const value = {
       name,
-      positions: {
-        x: window.innerWidth - (this.offset.x + this.size.width),
-        y: this.maxHeightColumnWithCard / 2,
-      },
-    });
+      type: TypeCard.DUAL,
+    };
+
+    this.root = new BinaryTreeNode(key, null, value);
   }
 
-  getParentCount(node: BinaryTreeNode, count = 0): number {
+  setPositions = (node = this.root) => {
+    return (props: any) => {
+      const { positions, width, height, offset } = props;
+      const [x, y] = positions;
+      const [offsetX, offsetY] = offset;
+      const maxHeightColumnWithCard = 8 * height + 8 * offsetY;
+      const offsetHeight =
+        maxHeightColumnWithCard / Math.pow(2, this.getParentCount(node) + 2);
+
+      node.setPositions(x, y);
+
+      if (node.left) {
+        const { type } = node.left.value;
+        const isSingle = type === TypeCard.SINGLE || type === TypeCard.EMPTY;
+
+        const positions = [
+          x - (offsetX + width),
+          y - offsetHeight * Number(!isSingle),
+        ];
+        this.setPositions(node.left)({ ...props, positions });
+      }
+
+      if (node.right) {
+        const positions = [x - (offsetX + width), y + offsetHeight];
+        this.setPositions(node.right)({ ...props, positions });
+      }
+
+      return true;
+    };
+  };
+
+  getParentCount = (node: BinaryTreeNode, count = 0): number => {
     if (!node.parent) return count;
 
-    return this.getParentCount(node.parent, count + 1);
-  }
+    return this.getParentCount(
+      node.parent,
+      node.value.type === TypeCard.DUAL ? count + 1 : count
+    );
+  };
 
   *inOrderTraversal(node = this.root): Generator<BinaryTreeNode> {
     if (node.left) yield* this.inOrderTraversal(node.left);
@@ -134,40 +112,36 @@ class BinaryTree {
     parentNodeKey: number,
     key: number,
     name: string,
-    { left, right } = { left: true, right: true }
+    { left, right } = { left: true, right: true },
+    type = TypeCard.DUAL
   ) {
     for (let node of this.preOrderTraversal()) {
       if (node.key === parentNodeKey) {
-        const offsetHeight =
-          this.maxHeightColumnWithCard /
-          Math.pow(2, this.getParentCount(node) + 2);
         const canInsertLeft = left && node.left === null;
         const canInsertRight = right && node.right === null;
 
         if (!canInsertLeft && !canInsertRight) return false;
 
+        if (
+          (type === TypeCard.SINGLE || type === TypeCard.EMPTY) &&
+          node.left === null
+        ) {
+          node.left = new BinaryTreeNode(key, node, { name, type });
+          return true;
+        }
+
         if (canInsertLeft) {
-          node.left = new BinaryTreeNode({
-            key,
+          node.left = new BinaryTreeNode(key, node, {
             name,
-            positions: {
-              x: node.positions.x - (this.offset.x + this.size.width),
-              y: node.positions.y - offsetHeight,
-            },
-            parent: node,
+            type: TypeCard.DUAL,
           });
           return true;
         }
 
         if (canInsertRight) {
-          node.right = new BinaryTreeNode({
-            key,
+          node.right = new BinaryTreeNode(key, node, {
             name,
-            positions: {
-              x: node.positions.x - (this.offset.x + this.size.width),
-              y: node.positions.y + offsetHeight,
-            },
-            parent: node,
+            type: TypeCard.DUAL,
           });
           return true;
         }
@@ -201,25 +175,16 @@ class BinaryTree {
   }
 }
 
-export const tree = new BinaryTree({
-  size: {
-    width: CARD_SIZES.width,
-    height: CARD_SIZES.height,
-  },
-  offset: { ...CARD_SIZES.offset },
-});
+export const tree = new BinaryTree();
 
 // @ts-ignore
 tree.insert(1, 11, "FINAL", { left: true });
 // @ts-ignore
+tree.insert(11, 111, "FINAL_1", { left: true });
+// @ts-ignore
+tree.insert(11, 112, "FINAL_1", { right: true });
+// @ts-ignore
 tree.insert(1, 12, "FINAL", { right: true });
 
-tree.insert(11, 111, "SEMI_FINAL");
-tree.insert(11, 112, "SEMI_FINAL");
-tree.insert(12, 121, "SEMI_FINAL");
-tree.insert(12, 122, "SEMI_FINAL");
-
-tree.insert(121, 1111, "QUATER_FINAL");
-tree.insert(121, 1112, "QUATER_FINAL");
-tree.insert(122, 1113, "QUATER_FINAL");
-tree.insert(122, 1114, "QUATER_FINAL");
+// @ts-ignore
+tree.insert(12, 113, "5_ROUND", { left: true }, TypeCard.SINGLE);
